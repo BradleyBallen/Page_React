@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import dotenv from "dotenv";
+import apiV1 from "./api/v1";
+
 
 dotenv.config();
 
@@ -12,5 +14,6 @@ app.use(helmet());
 
 // Health Check
 app.get("/health", (_req, res) => res.json({ status: "OK" }));
+app.use("/api/v1", apiV1);
 
 export default app;
