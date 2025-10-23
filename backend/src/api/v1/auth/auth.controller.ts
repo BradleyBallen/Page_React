@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import bcrypt from "bcrypt";
-import { prisma } from "../../../db/prisma";
+import * as bcrypt from "bcrypt";
+import prisma from "../../../prisma/client";
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -10,7 +10,12 @@ export const register = async (req: Request, res: Response) => {
 
     const hash = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
-      data: { email, passwordHash: hash, name },
+      data: { 
+        email, 
+        password: hash, // Cambiado de passwordHash a password
+        name,
+        age: 0 // Necesario porque age es requerido en el schema
+      },
     });
 
     res.status(201).json({ user });
