@@ -1,19 +1,11 @@
 import express from "express";
+import userRoutes from "./modules/users/user.routes";
 import cors from "cors";
-import helmet from "helmet";
-import dotenv from "dotenv";
-import apiV1 from "./api/v1";
-
-
-dotenv.config();
 
 const app = express();
+app.use(cors());
 app.use(express.json());
-app.use(cors({ origin: process.env.FRONTEND_URL }));
-app.use(helmet());
 
-// Health Check
-app.get("/health", (_req, res) => res.json({ status: "OK" }));
-app.use("/api/v1", apiV1);
+app.use("/api/users", userRoutes);
 
 export default app;
