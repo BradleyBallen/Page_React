@@ -23,7 +23,7 @@ export default function LoginForm() {
           <h1 className="text-2xl font-bold text-gray-800">
             English Learning Portal
           </h1>
-          <p className="text-gray-500 text-sm mt-1">Inicia sesión en tu cuenta</p>
+          <p className="text-gray-500 text-sm mt-1">Iniciaa sesión en tu cuenta</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
