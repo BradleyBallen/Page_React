@@ -1,83 +1,85 @@
 import { useState } from "react";
+import "../styles/LoginForm.css";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
+    if (!email.includes("@")) {
+      setError("Correo inválido");
+      return;
+    }
+    if (password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+
+    // Aquí luego conectarás el endpoint de login
     console.log("Datos listos para enviar:", { email, password });
-    // Aquí luego llamarás a tu endpoint:
-    // await loginService(email, password)
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-blue-200">
-      <div className="bg-white shadow-2xl rounded-2xl p-10 w-[90%] max-w-md">
-        <div className="flex flex-col items-center mb-8">
+    <div className="login-container">
+      <div className="login-card">
+        <div className="login-header">
           <img
             src="https://cdn-icons-png.flaticon.com/512/906/906175.png"
             alt="Logo"
-            className="w-16 h-16 mb-3"
+            className="login-logo"
           />
-          <h1 className="text-2xl font-bold text-gray-800">
-            English Learning Portal
-          </h1>
-          <p className="text-gray-500 text-sm mt-1">Iniciaa sesión en tu cuenta</p>
+          <h1>English Learning Portal</h1>
+          <p>Accede a tu cuenta para continuar</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Correo electrónico
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="ejemplo@correo.com"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="login-form">
+          <label htmlFor="email">Correo electrónico</label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            placeholder="ejemplo@correo.com"
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Contraseña
-            </label>
+          <label htmlFor="password">Contraseña</label>
+          <div className="password-field">
             <input
               id="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
+              onChange={(e) => setPassword(e.target.value)}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="show-password-btn"
+            >
+              {showPassword ? "🙈" : "👁️"}
+            </button>
           </div>
 
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Iniciar Sesión
+          {error && <p className="error">{error}</p>}
+
+          <button type="submit" className="login-btn">
+            Iniciar sesión
           </button>
         </form>
 
-        <div className="text-center mt-6 text-sm text-gray-500">
-          ¿No tienes una cuenta?{" "}
-          <a href="#" className="text-blue-600 hover:underline">
-            Regístrate
-          </a>
+        <div className="login-footer">
+          <a href="#">¿Olvidaste tu contraseña?</a>
+          <p>
+            ¿No tienes una cuenta? <a href="#">Regístrate</a>
+          </p>
         </div>
       </div>
     </div>
   );
 }
+
