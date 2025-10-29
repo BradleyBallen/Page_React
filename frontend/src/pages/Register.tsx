@@ -2,105 +2,123 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Register() {
-  const [form, setForm] = useState({ 
-    name: "", 
-    email: "", 
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
     password: "",
     confirmPassword: "",
     age: "",
     level: "beginner",
-    agreeTerms: false
+    agreeTerms: false,
   });
+
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const navigate = useNavigate();
 
+  // 🔹 Manejo de inputs
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    const checked = type === 'checkbox' ? (e.target as HTMLInputElement).checked : undefined;
-    
-    setForm(prev => ({
+    const checked = type === "checkbox" ? (e.target as HTMLInputElement).checked : undefined;
+
+    setForm((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
-    
+
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ""
+        [name]: "",
       }));
     }
   };
 
+  // 🔹 Validación del formulario
   const validateForm = () => {
-    const newErrors: {[key: string]: string} = {};
+    const newErrors: { [key: string]: string } = {};
 
-    if (!form.name.trim()) {
-      newErrors.name = "El nombre es requerido";
-    } else if (form.name.trim().length < 2) {
+    if (!form.name.trim()) newErrors.name = "El nombre es requerido";
+    else if (form.name.trim().length < 2)
       newErrors.name = "El nombre debe tener al menos 2 caracteres";
-    }
 
-    if (!form.email.trim()) {
-      newErrors.email = "El email es requerido";
-    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
+    if (!form.email.trim()) newErrors.email = "El email es requerido";
+    else if (!/\S+@\S+\.\S+/.test(form.email))
       newErrors.email = "El formato del email no es válido";
-    }
 
-    if (!form.age.trim()) {
-      newErrors.age = "La edad es requerida";
-    } else if (isNaN(Number(form.age))) {
-      newErrors.age = "La edad debe ser un número";
-    } else if (Number(form.age) < 13) {
+    if (!form.age.trim()) newErrors.age = "La edad es requerida";
+    else if (isNaN(Number(form.age))) newErrors.age = "La edad debe ser un número";
+    else if (Number(form.age) < 13)
       newErrors.age = "Debes tener al menos 13 años para registrarte";
-    }
 
-    if (!form.password) {
-      newErrors.password = "La contraseña es requerida";
-    } else if (form.password.length < 6) {
+    if (!form.password) newErrors.password = "La contraseña es requerida";
+    else if (form.password.length < 6)
       newErrors.password = "La contraseña debe tener al menos 6 caracteres";
-    }
 
-    if (form.password !== form.confirmPassword) {
+    if (form.password !== form.confirmPassword)
       newErrors.confirmPassword = "Las contraseñas no coinciden";
-    }
 
-    if (!form.agreeTerms) {
+    if (!form.agreeTerms)
       newErrors.agreeTerms = "Debes aceptar los términos y condiciones";
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  // 🔹 Envío al backend
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setIsLoading(true);
-    
+    setErrors({});
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log("Registro exitoso:", form);
+      const response = await fetch("http://localhost:4000/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          age: Number(form.age),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error en el registro");
+      }
+
+      const data = await response.json();
+      console.log("✅ Usuario registrado:", data);
+
       navigate("/dashboard");
-    } catch (error) {
-      console.error("Error en registro:", error);
-      setErrors({ submit: "Error al crear la cuenta. Intenta nuevamente." });
+    } catch (error: any) {
+      console.error("❌ Error en registro:", error);
+      setErrors({
+        submit: error.message || "Error al crear la cuenta. Intenta nuevamente.",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
+  // 🔹 Renderizado del formulario
   return (
     <div className="register-container">
       <div className="register-card">
+        {/* Header */}
         <div className="register-header">
           <div className="logo">🚀</div>
           <h1 className="register-title">Comienza tu Journey</h1>
           <p className="register-subtitle">Crea tu cuenta y domina el inglés</p>
         </div>
 
+        {/* Progreso visual */}
         <div className="progress-steps">
           <div className="step active">
             <div className="step-number">1</div>
@@ -116,11 +134,10 @@ export default function Register() {
           </div>
         </div>
 
+        {/* Formulario */}
         <form onSubmit={handleSubmit} className="register-form">
           {errors.submit && (
-            <div className="error-message general-error">
-              {errors.submit}
-            </div>
+            <div className="error-message general-error">{errors.submit}</div>
           )}
 
           <div className="form-grid">
@@ -128,13 +145,12 @@ export default function Register() {
             <div className="input-group">
               <label className="input-label">Nombre Completo</label>
               <div className="input-container">
-                <input 
+                <input
                   type="text"
                   name="name"
                   value={form.name}
                   onChange={handleChange}
-                  required
-                  className={`input-field ${errors.name ? 'input-error' : ''}`}
+                  className={`input-field ${errors.name ? "input-error" : ""}`}
                   placeholder="Tu nombre completo"
                   disabled={isLoading}
                 />
@@ -147,13 +163,12 @@ export default function Register() {
             <div className="input-group">
               <label className="input-label">Edad</label>
               <div className="input-container">
-                <input 
+                <input
                   type="number"
                   name="age"
                   value={form.age}
                   onChange={handleChange}
-                  required
-                  className={`input-field ${errors.age ? 'input-error' : ''}`}
+                  className={`input-field ${errors.age ? "input-error" : ""}`}
                   placeholder="Tu edad"
                   disabled={isLoading}
                   min="0"
@@ -167,13 +182,12 @@ export default function Register() {
             <div className="input-group">
               <label className="input-label">Email</label>
               <div className="input-container">
-                <input 
+                <input
                   type="email"
                   name="email"
                   value={form.email}
                   onChange={handleChange}
-                  required
-                  className={`input-field ${errors.email ? 'input-error' : ''}`}
+                  className={`input-field ${errors.email ? "input-error" : ""}`}
                   placeholder="tu@email.com"
                   disabled={isLoading}
                 />
@@ -186,38 +200,42 @@ export default function Register() {
             <div className="input-group">
               <label className="input-label">Contraseña</label>
               <div className="input-container">
-                <input 
+                <input
                   type="password"
                   name="password"
                   value={form.password}
                   onChange={handleChange}
-                  required
-                  className={`input-field ${errors.password ? 'input-error' : ''}`}
+                  className={`input-field ${errors.password ? "input-error" : ""}`}
                   placeholder="••••••••"
                   disabled={isLoading}
                 />
                 <div className="input-icon">🔒</div>
               </div>
-              {errors.password && <span className="error-message">{errors.password}</span>}
+              {errors.password && (
+                <span className="error-message">{errors.password}</span>
+              )}
             </div>
 
             {/* Confirmar Contraseña */}
             <div className="input-group">
               <label className="input-label">Confirmar Contraseña</label>
               <div className="input-container">
-                <input 
+                <input
                   type="password"
                   name="confirmPassword"
                   value={form.confirmPassword}
                   onChange={handleChange}
-                  required
-                  className={`input-field ${errors.confirmPassword ? 'input-error' : ''}`}
+                  className={`input-field ${
+                    errors.confirmPassword ? "input-error" : ""
+                  }`}
                   placeholder="••••••••"
                   disabled={isLoading}
                 />
                 <div className="input-icon">🔒</div>
               </div>
-              {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
+              {errors.confirmPassword && (
+                <span className="error-message">{errors.confirmPassword}</span>
+              )}
             </div>
           </div>
 
@@ -225,65 +243,54 @@ export default function Register() {
           <div className="level-selection">
             <label className="section-label">¿Cuál es tu nivel de inglés?</label>
             <div className="level-options">
-              <label className={`level-option ${form.level === 'beginner' ? 'selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="level"
-                  value="beginner"
-                  checked={form.level === 'beginner'}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-                <div className="option-content">
-                  <span className="option-icon">🌱</span>
-                  <div className="option-text">
-                    <strong>Principiante</strong>
-                    <span>A1 - A2</span>
+              {["beginner", "intermediate", "advanced"].map((level) => (
+                <label
+                  key={level}
+                  className={`level-option ${
+                    form.level === level ? "selected" : ""
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="level"
+                    value={level}
+                    checked={form.level === level}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                  />
+                  <div className="option-content">
+                    <span className="option-icon">
+                      {level === "beginner" ? "🌱" : level === "intermediate" ? "🚀" : "🏆"}
+                    </span>
+                    <div className="option-text">
+                      <strong>
+                        {level === "beginner"
+                          ? "Principiante"
+                          : level === "intermediate"
+                          ? "Intermedio"
+                          : "Avanzado"}
+                      </strong>
+                      <span>
+                        {level === "beginner"
+                          ? "A1 - A2"
+                          : level === "intermediate"
+                          ? "B1 - B2"
+                          : "C1 - C2"}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </label>
-
-              <label className={`level-option ${form.level === 'intermediate' ? 'selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="level"
-                  value="intermediate"
-                  checked={form.level === 'intermediate'}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-                <div className="option-content">
-                  <span className="option-icon">🚀</span>
-                  <div className="option-text">
-                    <strong>Intermedio</strong>
-                    <span>B1 - B2</span>
-                  </div>
-                </div>
-              </label>
-
-              <label className={`level-option ${form.level === 'advanced' ? 'selected' : ''}`}>
-                <input
-                  type="radio"
-                  name="level"
-                  value="advanced"
-                  checked={form.level === 'advanced'}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                />
-                <div className="option-content">
-                  <span className="option-icon">🏆</span>
-                  <div className="option-text">
-                    <strong>Avanzado</strong>
-                    <span>C1 - C2</span>
-                  </div>
-                </div>
-              </label>
+                </label>
+              ))}
             </div>
           </div>
 
           {/* Términos */}
           <div className="terms-section">
-            <label className={`checkbox-container ${errors.agreeTerms ? 'error' : ''}`}>
+            <label
+              className={`checkbox-container ${
+                errors.agreeTerms ? "error" : ""
+              }`}
+            >
               <input
                 type="checkbox"
                 name="agreeTerms"
@@ -293,16 +300,25 @@ export default function Register() {
               />
               <span className="checkmark"></span>
               <span className="terms-text">
-                Acepto los <a href="/terms" className="terms-link">Términos de Servicio</a> y la <a href="/privacy" className="terms-link">Política de Privacidad</a>
+                Acepto los{" "}
+                <a href="/terms" className="terms-link">
+                  Términos de Servicio
+                </a>{" "}
+                y la{" "}
+                <a href="/privacy" className="terms-link">
+                  Política de Privacidad
+                </a>
               </span>
             </label>
-            {errors.agreeTerms && <span className="error-message">{errors.agreeTerms}</span>}
+            {errors.agreeTerms && (
+              <span className="error-message">{errors.agreeTerms}</span>
+            )}
           </div>
 
           {/* Botón */}
-          <button 
-            type="submit" 
-            className={`register-button ${isLoading ? 'loading' : ''}`}
+          <button
+            type="submit"
+            className={`register-button ${isLoading ? "loading" : ""}`}
             disabled={isLoading}
           >
             {isLoading ? (
@@ -311,44 +327,20 @@ export default function Register() {
                 Creando tu cuenta...
               </>
             ) : (
-              'Crear Cuenta'
+              "Crear Cuenta"
             )}
           </button>
         </form>
 
+        {/* Footer */}
         <div className="register-footer">
           <p className="footer-text">
-            ¿Ya tienes cuenta? 
-            <a href="/login" className="login-link"> Inicia sesión aquí</a>
+            ¿Ya tienes cuenta?
+            <a href="/login" className="login-link">
+              {" "}
+              Inicia sesión aquí
+            </a>
           </p>
-        </div>
-
-        <div className="benefits-section">
-          <h4>✨ Al registrarte obtienes:</h4>
-          <div className="benefits-list">
-            <div className="benefit">
-              <span>🎯</span>
-              <span>Contenido personalizado según tu nivel</span>
-            </div>
-            <div className="benefit">
-              <span>📊</span>
-              <span>Seguimiento de tu progreso</span>
-            </div>
-            <div className="benefit">
-              <span>🤖</span>
-              <span>Asistente IA para dudas</span>
-            </div>
-            <div className="benefit">
-              <span>📱</span>
-              <span>Acceso desde cualquier dispositivo</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="background-effects">
-          <div className="floating-circle circle-1"></div>
-          <div className="floating-circle circle-2"></div>
-          <div className="floating-circle circle-3"></div>
         </div>
       </div>
     </div>
