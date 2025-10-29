@@ -1,26 +1,29 @@
 import { Request, Response } from "express";
-import * as bcrypt from "bcrypt";
-import prisma from "../../../prisma/client";
+import jwt from "jsonwebtoken";
 
-export const register = async (req: Request, res: Response) => {
+export const googleCallback = async (req: Request, res: Response) => {
   try {
-    const { email, password, name } = req.body;
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) return res.status(400).json({ message: "User already exists" });
+    const user = req.user as any;
 
-    const hash = await bcrypt.hash(password, 10);
-    const user = await prisma.user.create({
-      data: { 
-        email, 
-        password: hash, // Cambiado de passwordHash a password
-        name,
-        age: 0 // Necesario porque age es requerido en el schema
-      },
+    if (!user) {
+      return res.status(401).json({ message: "Error en la autenticación" });
+    }
+
+    // Generar token JWT
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET as string,
+      { expiresIn: "7d" }
+    );
+
+    // Enviar el token al frontend (puedes redirigirlo también)
+    res.status(200).json({
+      message: "Autenticación con Google exitosa",
+      user,
+      token,
     });
-
-    res.status(201).json({ user });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error registering user" });
+  } catch (error) {
+    console.error("Error en googleCallback:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
   }
 };
