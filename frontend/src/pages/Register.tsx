@@ -7,6 +7,7 @@ export default function Register() {
     email: "", 
     password: "",
     confirmPassword: "",
+    age: "",
     level: "beginner",
     agreeTerms: false
   });
@@ -23,7 +24,6 @@ export default function Register() {
       [name]: type === 'checkbox' ? checked : value
     }));
     
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -45,6 +45,14 @@ export default function Register() {
       newErrors.email = "El email es requerido";
     } else if (!/\S+@\S+\.\S+/.test(form.email)) {
       newErrors.email = "El formato del email no es válido";
+    }
+
+    if (!form.age.trim()) {
+      newErrors.age = "La edad es requerida";
+    } else if (isNaN(Number(form.age))) {
+      newErrors.age = "La edad debe ser un número";
+    } else if (Number(form.age) < 13) {
+      newErrors.age = "Debes tener al menos 13 años para registrarte";
     }
 
     if (!form.password) {
@@ -73,7 +81,6 @@ export default function Register() {
     setIsLoading(true);
     
     try {
-      // Simular llamada a la API
       await new Promise(resolve => setTimeout(resolve, 2000));
       console.log("Registro exitoso:", form);
       navigate("/dashboard");
@@ -88,14 +95,12 @@ export default function Register() {
   return (
     <div className="register-container">
       <div className="register-card">
-        {/* Header */}
         <div className="register-header">
           <div className="logo">🚀</div>
           <h1 className="register-title">Comienza tu Journey</h1>
           <p className="register-subtitle">Crea tu cuenta y domina el inglés</p>
         </div>
 
-        {/* Progress Steps */}
         <div className="progress-steps">
           <div className="step active">
             <div className="step-number">1</div>
@@ -111,7 +116,6 @@ export default function Register() {
           </div>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="register-form">
           {errors.submit && (
             <div className="error-message general-error">
@@ -120,6 +124,7 @@ export default function Register() {
           )}
 
           <div className="form-grid">
+            {/* Nombre */}
             <div className="input-group">
               <label className="input-label">Nombre Completo</label>
               <div className="input-container">
@@ -138,6 +143,27 @@ export default function Register() {
               {errors.name && <span className="error-message">{errors.name}</span>}
             </div>
 
+            {/* Edad */}
+            <div className="input-group">
+              <label className="input-label">Edad</label>
+              <div className="input-container">
+                <input 
+                  type="number"
+                  name="age"
+                  value={form.age}
+                  onChange={handleChange}
+                  required
+                  className={`input-field ${errors.age ? 'input-error' : ''}`}
+                  placeholder="Tu edad"
+                  disabled={isLoading}
+                  min="0"
+                />
+                <div className="input-icon">🎂</div>
+              </div>
+              {errors.age && <span className="error-message">{errors.age}</span>}
+            </div>
+
+            {/* Email */}
             <div className="input-group">
               <label className="input-label">Email</label>
               <div className="input-container">
@@ -156,6 +182,7 @@ export default function Register() {
               {errors.email && <span className="error-message">{errors.email}</span>}
             </div>
 
+            {/* Contraseña */}
             <div className="input-group">
               <label className="input-label">Contraseña</label>
               <div className="input-container">
@@ -174,6 +201,7 @@ export default function Register() {
               {errors.password && <span className="error-message">{errors.password}</span>}
             </div>
 
+            {/* Confirmar Contraseña */}
             <div className="input-group">
               <label className="input-label">Confirmar Contraseña</label>
               <div className="input-container">
@@ -193,7 +221,7 @@ export default function Register() {
             </div>
           </div>
 
-          {/* Level Selection */}
+          {/* Nivel */}
           <div className="level-selection">
             <label className="section-label">¿Cuál es tu nivel de inglés?</label>
             <div className="level-options">
@@ -253,7 +281,7 @@ export default function Register() {
             </div>
           </div>
 
-          {/* Terms and Conditions */}
+          {/* Términos */}
           <div className="terms-section">
             <label className={`checkbox-container ${errors.agreeTerms ? 'error' : ''}`}>
               <input
@@ -271,7 +299,7 @@ export default function Register() {
             {errors.agreeTerms && <span className="error-message">{errors.agreeTerms}</span>}
           </div>
 
-          {/* Submit Button */}
+          {/* Botón */}
           <button 
             type="submit" 
             className={`register-button ${isLoading ? 'loading' : ''}`}
@@ -288,7 +316,6 @@ export default function Register() {
           </button>
         </form>
 
-        {/* Footer */}
         <div className="register-footer">
           <p className="footer-text">
             ¿Ya tienes cuenta? 
@@ -296,7 +323,6 @@ export default function Register() {
           </p>
         </div>
 
-        {/* Benefits */}
         <div className="benefits-section">
           <h4>✨ Al registrarte obtienes:</h4>
           <div className="benefits-list">
@@ -319,7 +345,6 @@ export default function Register() {
           </div>
         </div>
 
-        {/* Background Effects */}
         <div className="background-effects">
           <div className="floating-circle circle-1"></div>
           <div className="floating-circle circle-2"></div>
