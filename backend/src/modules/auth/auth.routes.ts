@@ -4,17 +4,38 @@ import { googleCallback } from "./auth.controller";
 
 const router = Router();
 
-// Ruta para iniciar sesión con Google
+// 🔹 Iniciar el flujo de autenticación con Google
 router.get(
   "/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    accessType: "offline", // 🟢 Permite refresh tokens (opcional)
+    prompt: "consent",     // 🟢 Fuerza selección de cuenta (evita errores con cuentas previas)
+  })
 );
 
-// Ruta de callback (donde Google redirige después de login)
+// 🔹 Callback (Google redirige aquí tras el login)
 router.get(
   "/google/callback",
-  passport.authenticate("google", { session: false }),
+  (req, res, next) => {
+    console.log("⚙️ Callback alcanzado, ejecutando authenticate...");
+    next();
+  },
+  passport.authenticate("google", {
+    failureRedirect: "/api/auth/failure",
+    session: false, // 🟢 evita errores si no usas express-session
+  }),
+  (req, res, next) => {
+    console.log("✅ Autenticación completada, ejecutando controlador...");
+    next();
+  },
   googleCallback
 );
+
+// 🔹 En caso de fallo
+router.get("/failure", (req, res) => {
+  console.log("❌ Error en autenticación con Google");
+  res.status(401).json({ error: "Error en autenticación con Google" });
+});
 
 export default router;
